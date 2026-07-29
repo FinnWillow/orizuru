@@ -83,9 +83,9 @@ public class Main {
         }
 
         // setup a key callback. this is called every time a key is pressed, repeated or released.
-        glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
+        glfwSetKeyCallback(window, (windowHandle, key, scancode, action, mods) -> {
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-                glfwSetWindowShouldClose(window, true); // we will detect this in the rendering loop
+                glfwSetWindowShouldClose(windowHandle, true); // we will detect this in the rendering loop
             }
         });
 
@@ -106,7 +106,7 @@ public class Main {
                 (vidMode.width() - pWidth.get(0)) / 2, 
                 (vidMode.height() - pHeight.get(0)) / 2
             );
-        } // the stack frame is popped automatically, but i do it manually to remove the warning.
+        } // the stack frame is popped automatically
 
         // make the OpenGl context current
         glfwMakeContextCurrent(window);
@@ -119,11 +119,11 @@ public class Main {
     }
 
     private void loop() {
-		// this line is critical for LWJGL's interoperation with GLFW's
-		// OpenGL context, or any context that is managed externally.
-		// LWJGL detects the context that is current in the current thread,
-		// creates the GLCapabilities instance and makes the OpenGL
-		// bindings available for use.
+        // this line is critical for LWJGL's interoperation with GLFW's
+        // OpenGL context, or any context that is managed externally.
+        // LWJGL detects the context that is current in the current thread,
+        // creates the GLCapabilities instance and makes the OpenGL
+        // bindings available for use.
         GL.createCapabilities();
 
         // set the clear color
@@ -131,7 +131,6 @@ public class Main {
 
         // run the rendering loop until the user has attempted to close thw window or has pressed
         // the ESCAPE key.
-
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the frame buffer.
 
