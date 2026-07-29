@@ -28,9 +28,11 @@ import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
+import static org.lwjgl.opengl.GL11.GL_FRONT_AND_BACK;
 import static org.lwjgl.opengl.GL11.GL_INVALID_ENUM;
 import static org.lwjgl.opengl.GL11.GL_INVALID_OPERATION;
 import static org.lwjgl.opengl.GL11.GL_INVALID_VALUE;
+import static org.lwjgl.opengl.GL11.GL_LINE;
 import static org.lwjgl.opengl.GL11.GL_NO_ERROR;
 import static org.lwjgl.opengl.GL11.GL_OUT_OF_MEMORY;
 import static org.lwjgl.opengl.GL11.GL_STACK_OVERFLOW;
@@ -42,6 +44,7 @@ import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL11.glGetError;
+import static org.lwjgl.opengl.GL11.glPolygonMode;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
@@ -108,26 +111,34 @@ public class Main {
 
     // the triangle primitive vertex array
     //
-    //      2
-    //    /   \
-    //   /  I  \
-    //  /       \
+    // 2 ------- 3
+    // |  \      |
+    // |    I    |
+    // |      \  |
     // 0 ------- 1
     //
-    // I = 0.0, 0.0
+    // I =  0.0,  0.0
     // 0 = -0.5, -0.5
-    // 1 = 0.5, -0.5
-    // 2 = 0.0, 0.5
+    // 1 =  0.5, -0.5
+    // 2 = -0.5,  0.5
+    // 3 =  0.5,  0.5
     private static final float[] prim_verts = { 
-        -0.5f, -0.5f, 
-         0.5f, -0.5f, 
-         0.0f,  0.5f, 
+        // first triangle (0, 1, 2)
+        -0.5f, -0.5f,
+         0.5f, -0.5f,
+        -0.5f,  0.5f,
+
+        // second triangle (3, 2, 1)
+         0.5f,  0.5f,
+        -0.5f,  0.5f,
+         0.5f, -0.5f,
     };
 
     // the triangle primitive vertex index
     // CCW winding = front face.
     private static final int[] prim_index = { 
-        0, 1, 2 
+        0, 1, 2,
+        3, 2, 1,
     };
 
     private static void init() {
@@ -250,6 +261,10 @@ public class Main {
 
         // set the clear color.
         glClearColor(51 / 255.0f, 76 / 255.0f, 76 / 255.0f, 0.0f);
+
+        // wireframe mode
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
         int vertexShader = 0;
         int fragmentShader = 0;
         int shaderProgram = 0;
@@ -332,7 +347,7 @@ public class Main {
                 // draw the triangle
                 glUseProgram(shaderProgram);
                 glBindVertexArray(VAO);
-                glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
                 glBindVertexArray(0);
                 processErrors();
 
