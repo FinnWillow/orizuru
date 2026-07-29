@@ -18,7 +18,7 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.6.3</version>
         <configuration>
-            <mainClass>studio.paperwing.Main</mainClass>
+          <mainClass>studio.paperwing.Main</mainClass>
         </configuration>
       </plugin>
     </plugins>
@@ -37,6 +37,12 @@
   </dependencyManagement>
 
   <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>6.1.2</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.lwjgl</groupId>
       <artifactId>lwjgl</artifactId>
