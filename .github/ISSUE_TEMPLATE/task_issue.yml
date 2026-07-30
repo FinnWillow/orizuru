@@ -1,0 +1,48 @@
+name: Task Issue
+description: File a task issue. It has to be on the project board, and cannot already exist.
+projects: ["FinnWillow/projects/1"]
+type: task
+labels: ["task"]
+body:
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: "Please search to se if the issue you want to add already exists in the repository."
+      options:
+        - label: I have searched the existing issues.
+          required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "Context:"
+      placeholder: What is this issue going to talk about.
+    validations:
+      required: true
+
+  - type: textarea
+    id: in_scope
+    attributes:
+      label: "In scope:"
+      placeholder: What is this issue aiming to solve.
+    validations:
+      required: true
+
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: "Out of scope:"
+      placeholder: What is this issue not going to solve.
+    validations:
+      required: true
+
+  - type: textarea
+    id: dod
+    attributes:
+      label: "Definition of done:"
+      value: |
+        - [ ] I have to be completed.
+        - Extra line for clarification.
+        - [ ] (optional) I dont.
+    validations:
+      required: true
