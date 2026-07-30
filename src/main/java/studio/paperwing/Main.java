@@ -109,7 +109,7 @@ public class Main {
         }
         """;
 
-    // the triangle primitive vertex array
+    // the rectangle primitive vertex array
     //
     // 2 ------- 3
     // |  \      |
@@ -134,7 +134,7 @@ public class Main {
          0.5f, -0.5f,
     };
 
-    // the triangle primitive vertex index
+    // the rectangle primitive vertex index
     // CCW winding = front face.
     private static final int[] prim_index = { 
         0, 1, 2,
