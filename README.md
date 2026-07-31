@@ -10,7 +10,7 @@ In the [ROADMAP.md](./ROADMAP.md) I will be describing to the best of my abbilit
 
 # Requirements
 
-- Java SDK 26, but can be changed under ``` maven.compiler.release ``` to the version of your choosing. Although untested, no java feature above 15 is being used at the moment, so you can probably use another version if you want.
+- Java SDK 15 or higher.
 
 - Maven 3.9 or newer.
 

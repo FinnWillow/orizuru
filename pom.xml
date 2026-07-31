@@ -6,7 +6,7 @@
   <artifactId>tendoncy</artifactId>
   <version>0.0.0</version>
   <properties>
-    <maven.compiler.release>26</maven.compiler.release>
+    <maven.compiler.release>15</maven.compiler.release>
     <lwjgl.version>3.4.2</lwjgl.version>
     <lwjgl.natives>natives-windows</lwjgl.natives>
   </properties>
