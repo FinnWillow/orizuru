@@ -10,7 +10,7 @@ This phase focuses on installing and properly configuring the libraries required
 
 - [ ] **JOML**
 
-- if not installed and used yet via phase 1, it will be considered done if every site that would need it uses it. For example, if a Vector3 style structure exists that serves the purpose of a JOML Vector3 then that structure must be deleted and the code must be refactored to use the JOML version.
+- it will be considered done if every site that would need it uses it. For example, if a Vector3 style structure exists that serves the purpose of a JOML Vector3 then that structure must be deleted and the code must be refactored to use the JOML version.
 
 - [ ] **JCEF**
 
