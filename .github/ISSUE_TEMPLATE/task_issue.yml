@@ -1,7 +1,6 @@
 name: Task Issue
 description: File a task issue. It has to be on the project board, and cannot already exist.
 projects: ["projects/1"]
-type: task
 labels: ["task"]
 body:
   - type: checkboxes
