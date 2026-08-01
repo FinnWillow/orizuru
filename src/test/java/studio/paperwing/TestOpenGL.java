@@ -89,6 +89,7 @@ public class TestOpenGL {
 
     @BeforeAll
     static void initAll() {
+
         System.out.printf("Starting LWJGL %s!\n", Version.getVersion());
 
         // setup default error callback
@@ -145,11 +146,9 @@ public class TestOpenGL {
         int VAO = glGenVertexArrays();
         glBindVertexArray(VAO);
 
-        try {
+        assertDoesNotThrow(() -> {
             Main.processErrors();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     @Test
@@ -158,11 +157,13 @@ public class TestOpenGL {
         int VAO = -1;
         glBindVertexArray(VAO);
 
-        try {
+        Exception thrown = assertThrows(Exception.class, () -> {
             Main.processErrors();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
+
+        System.out.println("[ " + thrown.getClass().getName() + " ]\n" + thrown.getMessage());
+
+        assertTrue(thrown.getMessage().contains("operation"));
     }
 
     @Test
@@ -194,6 +195,7 @@ public class TestOpenGL {
     }
 
     @Test
+    @Disabled("For seeing the different errors the vertex shader can return")
     void failingVertexShaderCreationTest() {
         // the vertex shader
         final String vert_glsl = """
@@ -253,6 +255,7 @@ public class TestOpenGL {
     }
 
     @Test
+    @Disabled("For seeing the different errors the fragment shader can return")
     void failingFragmentShaderCreationTest() {
         // the fragment shader
         final String frag_glsl = """
@@ -348,6 +351,7 @@ public class TestOpenGL {
     }
 
     @Test
+    @Disabled("For seeing the different errors the program creation can return")
     void failingShaderProgramCreationTest() {
         // the vertex shader
         final String vert_glsl = """
