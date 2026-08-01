@@ -1,12 +1,12 @@
 # What this project is.
 
-Tendoncy is a game engine focused on bringing together all the things I like to have or I'd like to have in one spot. Java, Jolt 3D physics engine, web driven ui, a proper 2D and 3D level editor inside a highly customizeable UI, and a ECS framework to put it all together.
+Storm-Stack is a ECS driven game engine powered by artemis-lousia (a fork of artemis-odb managed currently by PaperWing Studio) that aims to be a highly optimized game engine that can handle thousands of objects running simultaneously at the same time.
 
 # How am I going to achieve this?
 
-By leaning heavily on build ready OSS libraries, I plan on integrating into this engine. A large portion of the systems present in this engine will not be made in house. The ones that I know of for certain are Jolt Physics, JOML for math, JCEF for the chrome/gui and Artemis ODB for the ECS, to name a few.
+By leaning heavily on build ready OSS libraries, I plan on integrating into this engine. A large portion of the systems present in this engine will not be made in house. The ones that I know of for certain are ode4j for Physics, JOML for math, JCEF for the chrome/gui and artemis-lousia for the ECS, to name a few.
 
-In the [ROADMAP.md](./ROADMAP.md) I will be describing to the best of my abbilities what each wave of implementations and what each phase within it will add to the engine.
+In the [ROADMAP.md](./ROADMAP.md) I will be describing to the best of my abbilities what each wave of implementations and what each phase will add to the engine. If you want a more up to date view of the roadmap, ckeck out the [project](https://github.com/users/FinnWillow/projects/1/views/1) page on github!
 
 # Requirements
 

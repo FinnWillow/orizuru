@@ -1,6 +1,5 @@
 package studio.paperwing;
 
-import com.artemis.Component;
 import com.artemis.ComponentMapper;
 import com.artemis.World;
 import com.artemis.WorldConfiguration;
