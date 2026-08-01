@@ -1,14 +1,11 @@
 package studio.paperwing;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.awt.Component;
 import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
 import java.awt.Window;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +28,6 @@ public class TestWeb {
         CefApp app = null;
         CefClient client = null;
         CefBrowser browser = null;
-        Component browserUI = null;
         Frame frame = new Frame(GraphicsEnvironment
             .getLocalGraphicsEnvironment()
             .getDefaultScreenDevice()
@@ -111,9 +107,8 @@ public class TestWeb {
             // context to get added. this
             // skips that and lets the page load.
             browser.createImmediately();
-            browserUI = browser.getUIComponent();
 
-            // frame.add(browserUI);
+            // frame.add(browser.getUIComponent());
             // frame.setVisible(true);
 
             assertNull(cFuture.get(9, TimeUnit.SECONDS));

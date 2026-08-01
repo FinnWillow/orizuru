@@ -58,7 +58,6 @@ import java.nio.IntBuffer;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -152,7 +151,6 @@ public class TestOpenGL {
     }
 
     @Test
-    @Disabled("For seeing the different errors processErrors() can return")
     void failingVaoCreationTest() {
         int VAO = -1;
         glBindVertexArray(VAO);
@@ -195,7 +193,6 @@ public class TestOpenGL {
     }
 
     @Test
-    @Disabled("For seeing the different errors the vertex shader can return")
     void failingVertexShaderCreationTest() {
         // the vertex shader
         final String vert_glsl = """
@@ -255,7 +252,6 @@ public class TestOpenGL {
     }
 
     @Test
-    @Disabled("For seeing the different errors the fragment shader can return")
     void failingFragmentShaderCreationTest() {
         // the fragment shader
         final String frag_glsl = """
@@ -351,7 +347,6 @@ public class TestOpenGL {
     }
 
     @Test
-    @Disabled("For seeing the different errors the program creation can return")
     void failingShaderProgramCreationTest() {
         // the vertex shader
         final String vert_glsl = """
