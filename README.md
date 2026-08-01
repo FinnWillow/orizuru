@@ -17,9 +17,19 @@ In the [ROADMAP.md](./ROADMAP.md) I will be describing to the best of my abbilit
 # Common commands
 
 ```pwsh
-mvn clean # cleans up the compiled files
+mvn clean       # cleans up the compiled files
 
-mvn compile exec:java # compiles and runs the project
+mvn compile exec:java       # compiles and runs the project
 
-mvn test # runs the testing suite built under src/test/java/studio/paperwing/Test*.java
+mvn test        # runs the testing suite built under src/test/java/studio/paperwing/Test*.java
+```
+
+For testing (in case you don't know or forgot how JUnit Test works):
+
+```pwsh
+mvn test        # tests all the Test files in the test/ folder.
+
+mvn test -Dtest=Test*       # tests the provided file, or files by rejex
+
+mvn test -Dtest=Test*#methodName*        # tests the provided method or methods in the file by rejex.
 ```

@@ -58,7 +58,6 @@ import java.nio.IntBuffer;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -89,6 +88,7 @@ public class TestOpenGL {
 
     @BeforeAll
     static void initAll() {
+
         System.out.printf("Starting LWJGL %s!\n", Version.getVersion());
 
         // setup default error callback
@@ -145,24 +145,23 @@ public class TestOpenGL {
         int VAO = glGenVertexArrays();
         glBindVertexArray(VAO);
 
-        try {
+        assertDoesNotThrow(() -> {
             Main.processErrors();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     @Test
-    @Disabled("For seeing the different errors processErrors() can return")
     void failingVaoCreationTest() {
         int VAO = -1;
         glBindVertexArray(VAO);
 
-        try {
+        Exception thrown = assertThrows(Exception.class, () -> {
             Main.processErrors();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
+
+        System.out.println("[ " + thrown.getClass().getName() + " ]\n" + thrown.getMessage());
+
+        assertTrue(thrown.getMessage().contains("operation"));
     }
 
     @Test
