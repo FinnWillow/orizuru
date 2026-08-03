@@ -28,11 +28,9 @@ import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
-import static org.lwjgl.opengl.GL11.GL_FRONT_AND_BACK;
 import static org.lwjgl.opengl.GL11.GL_INVALID_ENUM;
 import static org.lwjgl.opengl.GL11.GL_INVALID_OPERATION;
 import static org.lwjgl.opengl.GL11.GL_INVALID_VALUE;
-import static org.lwjgl.opengl.GL11.GL_LINE;
 import static org.lwjgl.opengl.GL11.GL_NO_ERROR;
 import static org.lwjgl.opengl.GL11.GL_OUT_OF_MEMORY;
 import static org.lwjgl.opengl.GL11.GL_STACK_OVERFLOW;
@@ -44,7 +42,6 @@ import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL11.glGetError;
-import static org.lwjgl.opengl.GL11.glPolygonMode;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
@@ -88,27 +85,6 @@ public class Main {
     // the window handle
     private static long window;
 
-    // the vertex shader
-    private static final String vert_glsl = """
-        #version 330 core
-
-        in vec2 a_pos;
-
-        void main() {
-            gl_Position = vec4(a_pos.x, a_pos.y, 0.0, 1.0);
-        }
-        """;
-
-    // the fragment shader
-    private static final String frag_glsl = """
-        #version 330 core
-
-        out vec4 fragColor;
-        void main() {
-            fragColor = vec4(1.0, 0.5, 0.2, 1.0);
-        }
-        """;
-
     // the rectangle primitive vertex array
     //
     // 2 ------- 3
@@ -124,14 +100,16 @@ public class Main {
     // 3 =  0.5,  0.5
     private static final float[] prim_verts = { 
         // first triangle (0, 1, 2)
-        -0.5f, -0.5f,
-         0.5f, -0.5f,
-        -0.5f,  0.5f,
+        //    position          colors (r, g, b)
+        -0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f, 0.0f,     0.5f, 0.7f, 0.0f,
+        -0.5f,  0.5f, 0.0f,     0.0f, 0.7f, 0.5f,
 
         // second triangle (3, 2, 1)
-         0.5f,  0.5f,
-        -0.5f,  0.5f,
-         0.5f, -0.5f,
+        //    position          colors (r, g, b)
+         0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f, 0.0f,     0.0f, 0.7f, 0.5f,
+         0.5f, -0.5f, 0.0f,     0.5f, 0.7f, 0.0f,
     };
 
     // the rectangle primitive vertex index
@@ -225,36 +203,6 @@ public class Main {
         }
     }
 
-    public static void processShaderErrors(String prefix, int shader) throws Exception {
-        try (
-            @SuppressWarnings("unused")
-            MemoryStack stack = stackPush()
-        ) {
-            IntBuffer pSuccess = stackMallocInt(1);
-            glGetShaderiv(shader, GL_COMPILE_STATUS, pSuccess);
-
-            if (pSuccess.get() != GL_TRUE) {
-                String log = glGetShaderInfoLog(shader);
-                throw new Exception(prefix + "\n" + log);
-            }
-        }
-    }
-
-    public static void processProgramErrors(String prefix, int program) throws Exception {
-        try (
-            @SuppressWarnings("unused")
-            MemoryStack stack = stackPush()
-        ) {
-            IntBuffer pSuccess = stackMallocInt(1);
-            glGetProgramiv(program, GL_LINK_STATUS, pSuccess);
-
-            if (pSuccess.get() != GL_TRUE) {
-                String log = glGetProgramInfoLog(program);
-                throw new Exception(prefix + "\n" + log);
-            }
-        }
-    }
-
     private static void loop() {
         // makes rendering bindings available for use. do not delete.
         GL.createCapabilities();
@@ -264,13 +212,12 @@ public class Main {
 
         // wireframe mode
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-        int vertexShader = 0;
-        int fragmentShader = 0;
-        int shaderProgram = 0;
         int VAO = 0;
         int VBO = 0;
         int EBO = 0;
+
+        // create and compile shaders
+        Shader ourShader = new Shader("/vertex_shader.vert", "/fragment_shader.frag");
 
         try {
             // create the vertex array object
@@ -290,47 +237,13 @@ public class Main {
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, prim_index, GL_STATIC_DRAW);
             processErrors();
 
-            // create and compile the vertex shader.
-            vertexShader = glCreateShader(GL_VERTEX_SHADER);
-            glShaderSource(vertexShader, vert_glsl);
-            glCompileShader(vertexShader);
-            
-
-            // check shader for errors
-            processErrors();
-            processShaderErrors("ERROR::SHADER::VERTEX::COMPILATION_FALIED", vertexShader);
-
-            // create and compile fragment shader.
-            fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-            glShaderSource(fragmentShader, frag_glsl);
-            glCompileShader(fragmentShader);
-            
-            // check for errors.
-            processErrors();
-            processShaderErrors("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", fragmentShader);
-
-            // create shader program
-            shaderProgram = glCreateProgram();
-
-            // attach shaders together and to the program
-            glAttachShader(shaderProgram, vertexShader);
-            glAttachShader(shaderProgram, fragmentShader);
-            glLinkProgram(shaderProgram);
-            
-            // check for errors.
-            processErrors();
-            processProgramErrors("ERROR::SHADER::PROGRAM::COMPILATION_FAILED", shaderProgram);
-            
-            // use program
-            glUseProgram(shaderProgram);
-
-            // finally, delete the shaders.
-            glDeleteShader(vertexShader);
-            glDeleteShader(fragmentShader);
-
-            // construct vertex attrubute pointer
-            glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * Float.BYTES, 0);
+            // construct vertex position attrubute
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * Float.BYTES, 0);
             glEnableVertexAttribArray(0);
+
+            // construct vertex color attribute
+            glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * Float.BYTES, 3 * Float.BYTES);
+            glEnableVertexAttribArray(1);
             
             processErrors();
         } catch (Exception e) {
@@ -343,9 +256,9 @@ public class Main {
             try {
                 // clear frame buffer
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+                
                 // draw the triangle
-                glUseProgram(shaderProgram);
+                ourShader.use();
                 glBindVertexArray(VAO);
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
                 glBindVertexArray(0);
