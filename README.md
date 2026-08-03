@@ -1,6 +1,6 @@
 # What this project is.
 
-Storm-Stack is a ECS driven game engine powered by artemis-lousia (a fork of artemis-odb managed currently by PaperWing Studio) that aims to be a highly optimized game engine that can handle thousands of objects running simultaneously at the same time.
+Orizuru is a ECS driven game engine powered by artemis-lousia (a fork of artemis-odb managed currently by PaperWing Studio) that aims to be a highly optimized game engine that can handle thousands of objects running simultaneously at the same time.
 
 # How am I going to achieve this?
 

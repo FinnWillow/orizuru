@@ -1,0 +1,38 @@
+Look at Slang. It is a shader language compiler. I found it on a Sebastian Lague video.
+
+For the graphical interface, I was thinking of having a few things be different, and the base idea is to reimagine
+some of the normal game engine IDE things into something special:
+
+Instead of having 700 panels and dropdowns, the entire IDE will be just the scene editor, with a horizontal panel
+down below and another to its right or left.
+
+However, what differentiates these panels from normal GEUI is that by default only the center one is visible. That one
+is the place where you generally build stuff. It is a complete level editor and it can be managed 100% using a context
+menu. There are buttons for switching from 3D to 2D mode (note that this doesn't change the view, but the mode of the
+scene. One scene can be both 2D and 3D at the same time, but stores its data in different dictionaries.) You can also
+enter and exit level edit mode, you can enter or exit edit mode, which lets you select entities and change component
+data for them, which will be present in one of the left panels.
+
+The left panel, the property viewer, is a floating panel that shows you information based on what your selection is.
+If it is the whole entity, it will show you the whole entity component view. There you can add or remove any component,
+create new ones by just clicking "New Component" in the add panel, and we'll get to how to edit components later. The
+property viewer also displays one component if that is what you are selecting. Note that to do this you either
+right-click a component there and click "focus component", or go to the third panel at the bottom.
+
+This third panel serves multiple uses:
+    1. It is the folder explorer, the thing that you use to see all the data stored inside your project. You can switch
+    between something similar to what Unity has, or a floating tree graph that is a lot easier to keep track of when
+    the project is larger than a pebble.
+
+    2. It is the scene tree, the thing used in parenting, and editing entities around. It also serves as the main
+    place where you can select components to show up in the property panel. Just like in the editor panel you can
+    add or remove entities, components, connections between entities (who's the parent of who) and so on. And just
+    like the folder explorer, this has a basic cascading tree view, and a free form tree view.
+
+    3. It is the output console, the thing telling you what errors occurred and why. Along with that, you get the
+    profiler window as well.
+
+Everything else, things like editing animation, sound, shaders, etc. will be planned accordingly when they are needed.
+Right now, I don't want to corner myself into any design decisions that I might revert right away, and even so, the
+main goal of this part of the file is to note down things for me so I don't forget, so I can revisit them in the future
+when they are more present problems.
