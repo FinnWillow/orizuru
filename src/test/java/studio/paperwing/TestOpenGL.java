@@ -184,7 +184,7 @@ public class TestOpenGL {
 
         // check shader for errors
         assertDoesNotThrow(() -> {
-            Main.processShaderErrors("PASSING_TEST::ERROR::SHADER::VERTEX::COMPILATION_FALIED", vertexShader);
+            Shader.processShaderErrors("PASSING_TEST::ERROR::SHADER::VERTEX::COMPILATION_FALIED", vertexShader);
             Main.processErrors();
         });
 
@@ -212,7 +212,7 @@ public class TestOpenGL {
 
         // check shader for errors
         Exception thrown = assertThrows(Exception.class, () -> {
-            Main.processShaderErrors("FAILING_TEST::ERROR::SHADER::VERTEX::COMPILATION_FALIED", vertexShader);
+            Shader.processShaderErrors("FAILING_TEST::ERROR::SHADER::VERTEX::COMPILATION_FALIED", vertexShader);
             Main.processErrors();
         });
 
@@ -243,7 +243,7 @@ public class TestOpenGL {
 
         // check shader for errors
         assertDoesNotThrow(() -> {
-            Main.processShaderErrors("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", fragmentShader);
+            Shader.processShaderErrors("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", fragmentShader);
             Main.processErrors();
         });
 
@@ -270,7 +270,7 @@ public class TestOpenGL {
 
         // check shader for errors
         Exception thrown = assertThrows(Exception.class, () -> {
-            Main.processShaderErrors("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", fragmentShader);
+            Shader.processShaderErrors("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", fragmentShader);
             Main.processErrors();
         });
 
@@ -302,7 +302,7 @@ public class TestOpenGL {
 
         // check shader for errors
         assertDoesNotThrow(() -> {
-            Main.processShaderErrors("PASSING_TEST::ERROR::SHADER::VERTEX::COMPILATION_FALIED", vertexShader);
+            Shader.processShaderErrors("PASSING_TEST::ERROR::SHADER::VERTEX::COMPILATION_FALIED", vertexShader);
             Main.processErrors();
         });
 
@@ -323,7 +323,7 @@ public class TestOpenGL {
 
         // check shader for errors
         assertDoesNotThrow(() -> {
-            Main.processShaderErrors("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", fragmentShader);
+            Shader.processShaderErrors("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", fragmentShader);
             Main.processErrors();
         });
 
@@ -337,7 +337,7 @@ public class TestOpenGL {
 
         // check for errors.
         assertDoesNotThrow(() -> {
-            Main.processProgramErrors("ERROR::SHADER::PROGRAM::COMPILATION_FAILED", shaderProgram);
+            Shader.processProgramErrors("ERROR::SHADER::PROGRAM::COMPILATION_FAILED", shaderProgram);
             Main.processErrors();
         });
 
@@ -366,7 +366,7 @@ public class TestOpenGL {
 
         // check shader for errors
         assertDoesNotThrow(() -> {
-            Main.processShaderErrors("PASSING_TEST::ERROR::SHADER::VERTEX::COMPILATION_FALIED", vertexShader);
+            Shader.processShaderErrors("PASSING_TEST::ERROR::SHADER::VERTEX::COMPILATION_FALIED", vertexShader);
             Main.processErrors();
         });
 
@@ -387,7 +387,7 @@ public class TestOpenGL {
 
         // check shader for errors
         assertThrows(Exception.class, () -> {
-            Main.processShaderErrors("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", fragmentShader);
+            Shader.processShaderErrors("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", fragmentShader);
             Main.processErrors();
         });
 
@@ -401,7 +401,7 @@ public class TestOpenGL {
 
         // check shader for errors
         Exception thrown = assertThrows(Exception.class, () -> {
-            Main.processProgramErrors("ERROR::SHADER::PROGRAM::COMPILATION_FAILED", shaderProgram);
+            Shader.processProgramErrors("ERROR::SHADER::PROGRAM::COMPILATION_FAILED", shaderProgram);
             Main.processErrors();
         });
 
@@ -454,7 +454,7 @@ public class TestOpenGL {
 
         // check shader for errors
         assertDoesNotThrow(() -> {
-            Main.processShaderErrors("ERROR::SHADER::VERTEX::COMPILATION_FALIED", vertexShader);
+            Shader.processShaderErrors("ERROR::SHADER::VERTEX::COMPILATION_FALIED", vertexShader);
             Main.processErrors();
         });
 
@@ -465,7 +465,7 @@ public class TestOpenGL {
 
         // check for errors.
         assertDoesNotThrow(() -> {
-            Main.processShaderErrors("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", fragmentShader);
+            Shader.processShaderErrors("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED", fragmentShader);
             Main.processErrors();
         });
 
@@ -479,7 +479,7 @@ public class TestOpenGL {
 
         // check for errors.
         assertDoesNotThrow(() -> {
-            Main.processProgramErrors("ERROR::SHADER::PROGRAM::COMPILATION_FAILED", shaderProgram);
+            Shader.processProgramErrors("ERROR::SHADER::PROGRAM::COMPILATION_FAILED", shaderProgram);
             Main.processErrors();
         });
         
