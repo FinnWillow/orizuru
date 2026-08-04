@@ -31,55 +31,60 @@ import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_INVALID_ENUM;
 import static org.lwjgl.opengl.GL11.GL_INVALID_OPERATION;
 import static org.lwjgl.opengl.GL11.GL_INVALID_VALUE;
+import static org.lwjgl.opengl.GL11.GL_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_LINEAR_MIPMAP_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_NO_ERROR;
 import static org.lwjgl.opengl.GL11.GL_OUT_OF_MEMORY;
+import static org.lwjgl.opengl.GL11.GL_REPEAT;
+import static org.lwjgl.opengl.GL11.GL_RGBA;
 import static org.lwjgl.opengl.GL11.GL_STACK_OVERFLOW;
 import static org.lwjgl.opengl.GL11.GL_STACK_UNDERFLOW;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL11.GL_TRUE;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
+import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDrawElements;
+import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glGetError;
+import static org.lwjgl.opengl.GL11.glTexImage2D;
+import static org.lwjgl.opengl.GL11.glTexParameteri;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
-import static org.lwjgl.opengl.GL20.GL_COMPILE_STATUS;
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20.glAttachShader;
-import static org.lwjgl.opengl.GL20.glCompileShader;
-import static org.lwjgl.opengl.GL20.glCreateProgram;
-import static org.lwjgl.opengl.GL20.glCreateShader;
-import static org.lwjgl.opengl.GL20.glDeleteShader;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
-import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL20.glGetProgramiv;
-import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
-import static org.lwjgl.opengl.GL20.glGetShaderiv;
-import static org.lwjgl.opengl.GL20.glLinkProgram;
-import static org.lwjgl.opengl.GL20.glShaderSource;
-import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30.GL_INVALID_FRAMEBUFFER_OPERATION;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
-import static org.lwjgl.system.MemoryStack.stackMallocInt;
+import static org.lwjgl.opengl.GL30.glGenerateMipmap;
+import static org.lwjgl.opengl.GL30.glActiveTexture;
+import static org.lwjgl.opengl.GL30.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL30.GL_TEXTURE1;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
+
+import java.io.IOException;
 
 public class Main {
     // the window handle
@@ -88,33 +93,33 @@ public class Main {
     // the rectangle primitive vertex array
     //
     // 2 ------- 3
-    // |  \      |
+    // | \       |
     // |    I    |
-    // |      \  |
+    // |       \ |
     // 0 ------- 1
     //
-    // I =  0.0,  0.0
+    // I = 0.0, 0.0
     // 0 = -0.5, -0.5
-    // 1 =  0.5, -0.5
-    // 2 = -0.5,  0.5
-    // 3 =  0.5,  0.5
-    private static final float[] prim_verts = { 
-        // first triangle (0, 1, 2)
-        //    position          colors (r, g, b)
-        -0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, 0.0f,     0.5f, 0.7f, 0.0f,
-        -0.5f,  0.5f, 0.0f,     0.0f, 0.7f, 0.5f,
+    // 1 = 0.5, -0.5
+    // 2 = -0.5, 0.5
+    // 3 = 0.5, 0.5
+    private static final float[] prim_verts = {
+        // first triangle  (0, 1, 2)
+        // position colors          (r, g, b)     texture coords
+        -0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+         0.5f, -0.5f, 0.0f,     0.5f, 0.7f, 0.0f,   1.0f, 0.0f,
+        -0.5f,  0.5f, 0.0f,     0.0f, 0.7f, 0.5f,   0.0f, 1.0f,
 
         // second triangle (3, 2, 1)
-        //    position          colors (r, g, b)
-         0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f, 0.0f,     0.0f, 0.7f, 0.5f,
-         0.5f, -0.5f, 0.0f,     0.5f, 0.7f, 0.0f,
+        // position colors          (r, g, b)     texture coords
+         0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,   1.0f, 1.0f,
+        -0.5f,  0.5f, 0.0f,     0.0f, 0.7f, 0.5f,   0.0f, 1.0f,
+         0.5f, -0.5f, 0.0f,     0.5f, 0.7f, 0.0f,   1.0f, 0.0f,
     };
 
     // the rectangle primitive vertex index
     // CCW winding = front face.
-    private static final int[] prim_index = { 
+    private static final int[] prim_index = {
         0, 1, 2,
         3, 2, 1,
     };
@@ -149,10 +154,9 @@ public class Main {
         });
 
         // get the thread stack and push a new frame
-        try (@SuppressWarnings("unused")
-        MemoryStack stack = stackPush()) {
-            IntBuffer pWidth = stackMallocInt(1);
-            IntBuffer pHeight = stackMallocInt(1);
+        try (MemoryStack stack = stackPush()) {
+            IntBuffer pWidth = stack.mallocInt(1);
+            IntBuffer pHeight = stack.mallocInt(1);
 
             // get the window size passed to glfwCreateWindow
             glfwGetWindowSize(window, pWidth, pHeight);
@@ -215,6 +219,8 @@ public class Main {
         int VAO = 0;
         int VBO = 0;
         int EBO = 0;
+        int texture1 = 0;
+        int texture2 = 0;
 
         // create and compile shaders
         Shader ourShader = new Shader("/vertex_shader.vert", "/fragment_shader.frag");
@@ -238,14 +244,101 @@ public class Main {
             processErrors();
 
             // construct vertex position attrubute
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * Float.BYTES, 0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * Float.BYTES, 0);
             glEnableVertexAttribArray(0);
 
             // construct vertex color attribute
-            glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * Float.BYTES, 3 * Float.BYTES);
+            glVertexAttribPointer(1, 3, GL_FLOAT, false, 8 * Float.BYTES, 3 * Float.BYTES);
             glEnableVertexAttribArray(1);
-            
             processErrors();
+
+            // create texture 1
+            texture1 = glGenTextures();
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, texture1);
+            processErrors();
+
+            // set wrapping and mipmap settings
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            // load the image for texture 1.
+            try (MemoryStack stack = stackPush()) {
+                IntBuffer pWidth = stack.mallocInt(1);
+                IntBuffer pHeight = stack.mallocInt(1);
+                IntBuffer pNrChannels = stack.mallocInt(1);
+
+                STBImage.stbi_set_flip_vertically_on_load(true);
+                ByteBuffer pData = STBImage.stbi_load(
+                    "target/classes/copper_sheet.png", 
+                    pWidth, pHeight, pNrChannels, 4
+                );
+
+                if (pData == null) {
+                    throw new IOException("STBI image loading failed: " + STBImage.stbi_failure_reason());
+                }
+
+                // bind image data
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+                    pWidth.get(0), pHeight.get(0), 0, GL_RGBA, 
+                    GL_UNSIGNED_BYTE, pData
+                );
+                glGenerateMipmap(GL_TEXTURE_2D);
+                processErrors();
+
+                STBImage.stbi_image_free(pData);
+            }
+
+            // create texture
+            texture2 = glGenTextures();
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, texture2);
+            processErrors();
+
+            // set wrapping and mipmap settings
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            // load the image for texture 1.
+            try (MemoryStack stack = stackPush()) {
+                IntBuffer pWidth = stack.mallocInt(1);
+                IntBuffer pHeight = stack.mallocInt(1);
+                IntBuffer pNrChannels = stack.mallocInt(1);
+
+                STBImage.stbi_set_flip_vertically_on_load(true);
+                ByteBuffer pData = STBImage.stbi_load(
+                    "target/classes/a_stone.png",
+                    pWidth, pHeight, pNrChannels, 4
+                );
+
+                if (pData == null) {
+                    throw new IOException("STBI image loading failed: " + STBImage.stbi_failure_reason());
+                }
+
+                // bind image data
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+                    pWidth.get(0), pHeight.get(0), 0, GL_RGBA, 
+                    GL_UNSIGNED_BYTE, pData
+                );
+                glGenerateMipmap(GL_TEXTURE_2D);
+                processErrors();
+
+                STBImage.stbi_image_free(pData);
+            }
+
+            // bind attribute pointer
+            glVertexAttribPointer(2, 2, GL_FLOAT, false, 8 * Float.BYTES, 6 * Float.BYTES);
+            glEnableVertexAttribArray(2);
+            processErrors();
+
+            // activate shader and set textures uniforms.
+            ourShader.use();
+            ourShader.setInt("texture1", 0);
+            ourShader.setInt("texture2", 1);
         } catch (Exception e) {
             e.printStackTrace();
             return;
@@ -256,9 +349,13 @@ public class Main {
             try {
                 // clear frame buffer
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                
+
                 // draw the triangle
-                ourShader.use();
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, texture1);
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_2D, texture2);
+
                 glBindVertexArray(VAO);
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
                 glBindVertexArray(0);

@@ -22,18 +22,15 @@ import static org.lwjgl.opengl.GL20.glUniform3f;
 import static org.lwjgl.opengl.GL20.glUniform4f;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
-import static org.lwjgl.system.MemoryStack.stackMallocInt;
+import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
-import java.io.File;
-import java.io.FileDescriptor;
-import java.io.FileReader;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 
-import javax.management.RuntimeErrorException;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -105,14 +102,11 @@ public class Shader {
     }
 
     public static void processShaderErrors(String prefix, int shader) throws Exception {
-        try (
-                @SuppressWarnings("unused")
-                MemoryStack stack = stackPush()
-        ) {
-            IntBuffer pSuccess = stackMallocInt(1);
+        try (MemoryStack stack = stackPush()) {
+            IntBuffer pSuccess = stack.mallocInt(1);
             glGetShaderiv(shader, GL_COMPILE_STATUS, pSuccess);
 
-            if (pSuccess.get() != GL_TRUE) {
+            if (pSuccess.get(0) != GL_TRUE) {
                 String log = glGetShaderInfoLog(shader);
                 throw new Exception(prefix + "\n" + log);
             }
@@ -120,15 +114,12 @@ public class Shader {
     }
 
     public static void processProgramErrors(String prefix, int program) throws Exception {
-        try (
-                @SuppressWarnings("unused")
-                MemoryStack stack = stackPush()
-        ) {
-            IntBuffer pSuccess = stackMallocInt(1);
+        try (MemoryStack stack = stackPush()) {
+            IntBuffer pSuccess = stack.mallocInt(1);
             glGetProgramiv(program, GL_LINK_STATUS, pSuccess);
 
-            if (pSuccess.get() != GL_TRUE) {
-                String log = glGetShaderInfoLog(program);
+            if (pSuccess.get(0) != GL_TRUE) {
+                String log = glGetProgramInfoLog(program);
                 throw new Exception(prefix + "\n" + log);
             }
         }
@@ -155,7 +146,7 @@ public class Shader {
     }
 
     public void setFloat(String name, double value) {
-        setFloat(name, value);
+        setFloat(name, (float) value);
     }
 
     public void setVec2(String name, Vector2f value) {
