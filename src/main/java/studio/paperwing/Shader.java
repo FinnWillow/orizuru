@@ -1,5 +1,6 @@
 package studio.paperwing;
 
+import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL20.GL_COMPILE_STATUS;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
@@ -20,6 +21,7 @@ import static org.lwjgl.opengl.GL20.glUniform1i;
 import static org.lwjgl.opengl.GL20.glUniform2f;
 import static org.lwjgl.opengl.GL20.glUniform3f;
 import static org.lwjgl.opengl.GL20.glUniform4f;
+import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
 import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
@@ -31,7 +33,7 @@ import java.io.InputStream;
 import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 
-
+import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -159,5 +161,11 @@ public class Shader {
 
     public void setVec4(String name, Vector4f value) {
         glUniform4f(glGetUniformLocation(ID, name), value.x, value.y, value.z, value.w);
+    }
+
+    public void setMat4(String name, Matrix4f value) {
+        float[] out = new float[16];
+        value.get(out);
+        glUniformMatrix4fv(glGetUniformLocation(ID, name), false, out);
     }
 }

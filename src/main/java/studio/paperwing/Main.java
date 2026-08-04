@@ -55,6 +55,9 @@ import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glGetError;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
@@ -67,24 +70,20 @@ import static org.lwjgl.opengl.GL30.GL_INVALID_FRAMEBUFFER_OPERATION;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
-import static org.lwjgl.opengl.GL30.glActiveTexture;
-import static org.lwjgl.opengl.GL30.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL30.GL_TEXTURE1;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
+import org.joml.Matrix4f;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
-
-import java.io.IOException;
 
 public class Main {
     // the window handle
@@ -339,6 +338,15 @@ public class Main {
             ourShader.use();
             ourShader.setInt("texture1", 0);
             ourShader.setInt("texture2", 1);
+
+            // create a transform for the model and pass it to the shader.
+            Matrix4f transform = new Matrix4f()
+                .translate(0.5f, -0.5f, 0.0f)
+                .scale(0.5f)
+                .rotate((float)Math.toRadians(45.0f), 0.0f, 0.0f, 1.0f);
+
+            ourShader.setMat4("transform", transform);
+
         } catch (Exception e) {
             e.printStackTrace();
             return;
@@ -368,10 +376,10 @@ public class Main {
                 glfwPollEvents();
             } catch (Exception e) {
                 e.printStackTrace();
-                break;
             }
         }
     }
+    
 
     private static void cleanup() {
         // free the window callbacks to the system
