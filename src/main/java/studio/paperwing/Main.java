@@ -10,6 +10,7 @@ import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
 import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
 import static org.lwjgl.glfw.GLFW.glfwInit;
@@ -27,6 +28,7 @@ import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_INVALID_ENUM;
 import static org.lwjgl.opengl.GL11.GL_INVALID_OPERATION;
@@ -46,11 +48,11 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glDrawElements;
+import static org.lwjgl.opengl.GL11.glDrawArrays;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glGetError;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
@@ -59,7 +61,6 @@ import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
@@ -78,6 +79,8 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import org.joml.Matrix4f;
+import org.joml.Vector2i;
+import org.joml.Vector3f;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -89,38 +92,64 @@ public class Main {
     // the window handle
     private static long window;
 
-    // the rectangle primitive vertex array
-    //
-    // 2 ------- 3
-    // | \       |
-    // |    I    |
-    // |       \ |
-    // 0 ------- 1
-    //
-    // I = 0.0, 0.0
-    // 0 = -0.5, -0.5
-    // 1 = 0.5, -0.5
-    // 2 = -0.5, 0.5
-    // 3 = 0.5, 0.5
-    private static final float[] prim_verts = {
-        // first triangle  (0, 1, 2)
-        // position colors          (r, g, b)     texture coords
-        -0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
-         0.5f, -0.5f, 0.0f,     0.5f, 0.7f, 0.0f,   1.0f, 0.0f,
-        -0.5f,  0.5f, 0.0f,     0.0f, 0.7f, 0.5f,   0.0f, 1.0f,
+    private static final Vector2i windowSize = new Vector2i(640, 480);
 
-        // second triangle (3, 2, 1)
-        // position colors          (r, g, b)     texture coords
-         0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,   1.0f, 1.0f,
-        -0.5f,  0.5f, 0.0f,     0.0f, 0.7f, 0.5f,   0.0f, 1.0f,
-         0.5f, -0.5f, 0.0f,     0.5f, 0.7f, 0.0f,   1.0f, 0.0f,
+    // primitive cube
+    private static final float[] prim_verts = {
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
-    // the rectangle primitive vertex index
-    // CCW winding = front face.
-    private static final int[] prim_index = {
-        0, 1, 2,
-        3, 2, 1,
+    private static final Vector3f cubePositions[] = {
+        new Vector3f( 0.0f,  0.0f,  0.0f), 
+        new Vector3f( 2.0f,  5.0f, -15.0f), 
+        new Vector3f(-1.5f, -2.2f, -2.5f),  
+        new Vector3f(-3.8f, -2.0f, -12.3f),  
+        new Vector3f( 2.4f, -0.4f, -3.5f),  
+        new Vector3f(-1.7f,  3.0f, -7.5f),  
+        new Vector3f( 1.3f, -2.0f, -2.5f),  
+        new Vector3f( 1.5f,  2.0f, -2.5f), 
+        new Vector3f( 1.5f,  0.2f, -1.5f), 
+        new Vector3f(-1.3f,  1.0f, -1.5f)  
     };
 
     private static void init() {
@@ -140,7 +169,7 @@ public class Main {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
         // create the window
-        window = glfwCreateWindow(640, 480, "Hello World!", NULL, NULL);
+        window = glfwCreateWindow(windowSize.x, windowSize.y, "Hello World!", NULL, NULL);
         if (window == NULL) {
             throw new RuntimeException("Failed to create the GLFW window.");
         }
@@ -213,16 +242,35 @@ public class Main {
         // set the clear color.
         glClearColor(51 / 255.0f, 76 / 255.0f, 76 / 255.0f, 0.0f);
 
+        // enable depth testing.
+        glEnable(GL_DEPTH_TEST);
+
         // wireframe mode
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         int VAO = 0;
         int VBO = 0;
-        int EBO = 0;
         int texture1 = 0;
         int texture2 = 0;
 
         // create and compile shaders
         Shader ourShader = new Shader("/vertex_shader.vert", "/fragment_shader.frag");
+
+        // create a model matrix. use this to describe translation, rotation, and scale of the model.
+        // WARNING: rotation wants a normalized vector, but does not normalize the vector itself, unike glm.
+        //          you have to normalize it yourself manually.
+        Matrix4f model = new Matrix4f()
+            .rotation((float)Math.toRadians(-55.0f), new Vector3f(1.0f, 0.0f, 0.0f).normalize());
+
+        // create a view matrix that describes where the camera is. position and rotation do what they do.
+        // scale changes zoom.
+        Matrix4f view = new Matrix4f()
+            .translation(0.0f, 0.0f, -4.0f);
+
+        // create a projection matrix, describes how and what the projection is. we have FOV, aspect ratio,
+        // near and far plane. in this case it is a perspective projection.
+        
+        Matrix4f projection = new Matrix4f()
+            .perspective((float)Math.toRadians(45.0f), (float)windowSize.x / windowSize.y, 0.1f, 100.0f);
 
         try {
             // create the vertex array object
@@ -236,18 +284,12 @@ public class Main {
             glBufferData(GL_ARRAY_BUFFER, prim_verts, GL_STATIC_DRAW);
             processErrors();
 
-            // create a element buffer object
-            EBO = glGenBuffers();
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, prim_index, GL_STATIC_DRAW);
-            processErrors();
-
             // construct vertex position attrubute
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * Float.BYTES, 0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * Float.BYTES, 0);
             glEnableVertexAttribArray(0);
 
-            // construct vertex color attribute
-            glVertexAttribPointer(1, 3, GL_FLOAT, false, 8 * Float.BYTES, 3 * Float.BYTES);
+            // construct texture coord attribute
+            glVertexAttribPointer(1, 2, GL_FLOAT, false, 5 * Float.BYTES, 3 * Float.BYTES);
             glEnableVertexAttribArray(1);
             processErrors();
 
@@ -329,23 +371,13 @@ public class Main {
                 STBImage.stbi_image_free(pData);
             }
 
-            // bind attribute pointer
-            glVertexAttribPointer(2, 2, GL_FLOAT, false, 8 * Float.BYTES, 6 * Float.BYTES);
-            glEnableVertexAttribArray(2);
-            processErrors();
-
             // activate shader and set textures uniforms.
             ourShader.use();
             ourShader.setInt("texture1", 0);
             ourShader.setInt("texture2", 1);
 
-            // create a transform for the model and pass it to the shader.
-            Matrix4f transform = new Matrix4f()
-                .translate(0.5f, -0.5f, 0.0f)
-                .scale(0.5f)
-                .rotate((float)Math.toRadians(45.0f), 0.0f, 0.0f, 1.0f);
-
-            ourShader.setMat4("transform", transform);
+            ourShader.setMat4("view", view);
+            ourShader.setMat4("projection", projection);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -358,14 +390,27 @@ public class Main {
                 // clear frame buffer
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                // draw the triangle
+                // set the textures.
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, texture1);
                 glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, texture2);
 
+                // draw the triangle
                 glBindVertexArray(VAO);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                for (int i = 0; i < cubePositions.length; i++) {
+                    float angle = (float)Math.toRadians( (i+1) * 20.0f * glfwGetTime());
+                    // WARNING: -tion functions reset the matrix to identity before applying whatever it does.
+                    //          therefore, you should always start with a -tion function, followed by a normal
+                    //          verb.
+                    //          In other words, use -tion of any kind exactly once at the start, or, use
+                    //          .identity at the start and only ever use normal verbs. (translate, rotate, scale)
+                    model.translation(cubePositions[i]);
+                    model.rotate(angle, new Vector3f(1.0f, 0.3f, 0.5f).normalize());
+                    ourShader.setMat4("model", model);
+                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                }
+                
                 glBindVertexArray(0);
                 processErrors();
 
@@ -376,6 +421,7 @@ public class Main {
                 glfwPollEvents();
             } catch (Exception e) {
                 e.printStackTrace();
+                break;
             }
         }
     }
