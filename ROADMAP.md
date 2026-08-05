@@ -39,11 +39,11 @@ Get correct pixels on screen and understand the pipeline end to end. This wave i
 
 ## Issues
 
-- [ ] **Shaders** — a shader class, as per the tutorial, that can change input values and be used for drawing a model.
-- [ ] **Textures** — load bitmap textures and pass them to a shader that draws them on the model. Loading from a hardcoded path is fine here; the real asset system is Wave 6.
-- [ ] **Transformations** — position, rotation and scale applied to a model through a transform matrix.
-- [ ] **Coordinate system** — properly formed MVP matrices, with depth testing and back face culling switched on. Both get a proper treatment later in Wave 7; here they just need to be enabled and correct.
-- [ ] **Camera** — a virtual camera that can position, rotate and scale (zoom in and out) in 3D space.
+- [x] **Shaders** — a shader class, as per the tutorial, that can change input values and be used for drawing a model.
+- [x] **Textures** — load bitmap textures and pass them to a shader that draws them on the model. Loading from a hardcoded path is fine here; the real asset system is Wave 6.
+- [x] **Transformations** — position, rotation and scale applied to a model through a transform matrix.
+- [x] **Coordinate system** — properly formed MVP matrices, with depth testing and back face culling switched on. Both get a proper treatment later in Wave 7; here they just need to be enabled and correct.
+- [x] **Camera** — a virtual camera that can position, rotate and scale (zoom in and out) in 3D space.
 
 ## Definition of done
 

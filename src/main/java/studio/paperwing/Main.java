@@ -1,43 +1,18 @@
 package studio.paperwing;
 
-import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR_DISABLED;
-import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
-import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
-import static org.lwjgl.glfw.GLFW.GLFW_REPEAT;
-import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
-import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
-import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
-import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
-import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetKey;
-import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
-import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
-import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
-import static org.lwjgl.glfw.GLFW.glfwInit;
-import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
-import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetInputMode;
-import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetScrollCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowPos;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
-import static org.lwjgl.glfw.GLFW.glfwShowWindow;
-import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
-import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
-import static org.lwjgl.glfw.GLFW.glfwTerminate;
-import static org.lwjgl.glfw.GLFW.glfwWindowHint;
-import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
@@ -84,28 +59,23 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.system.MemoryStack.stackPush;
-import static org.lwjgl.system.MemoryUtil.NULL;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import org.joml.Matrix4f;
-import org.joml.Vector2i;
 import org.joml.Vector3f;
-import org.lwjgl.Version;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 import studio.paperwing.Camera.MOVEMENT;
+import studio.paperwing.orizuru.core.Application;
+import studio.paperwing.orizuru.core.Window;
 
 public class Main {
     // the window handle
-    private static long window;
-
-    private static final Vector2i windowSize = new Vector2i(640, 480);
+    private static Window window = null;
 
     // primitive cube
     private static final float[] prim_verts = {
@@ -177,30 +147,12 @@ public class Main {
     private static float lastY = 0.0f;
 
     private static void init() {
-        System.out.printf("Starting LWJGL %s!\n", Version.getVersion());
+        Application.init();
+        window = Application.createWindow("Hello Window!", 640, 480);
 
-        // setup default error callback
-        GLFWErrorCallback.createPrint(System.err).set();
+        glfwSetInputMode(window.getID(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-        // initialize GLFW
-        if (!glfwInit()) {
-            throw new IllegalStateException();
-        }
-
-        // continue GLFW
-        glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-        // create the window
-        window = glfwCreateWindow(windowSize.x, windowSize.y, "Hello World!", NULL, NULL);
-        if (window == NULL) {
-            throw new RuntimeException("Failed to create the GLFW window.");
-        }
-
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-        glfwSetCursorPosCallback(window, (windowHandle, xpos, ypos) -> {
+        glfwSetCursorPosCallback(window.getID(), (windowHandle, xpos, ypos) -> {
             if (firstMouse) { // initialize last x and y of the mouse.
                 lastX = (float)xpos;
                 lastY = (float)ypos;
@@ -217,33 +169,9 @@ public class Main {
             camera.processMouseMovement(xOffset, yOffset, true);
         });
 
-        glfwSetScrollCallback(window, (windowHandle, xOffset, yOffset) -> {
+        glfwSetScrollCallback(window.getID(), (windowHandle, xOffset, yOffset) -> {
             camera.processMouseScroll((float)yOffset);
         });
-
-        // get the thread stack and push a new frame
-        try (MemoryStack stack = stackPush()) {
-            IntBuffer pWidth = stack.mallocInt(1);
-            IntBuffer pHeight = stack.mallocInt(1);
-
-            // get the window size passed to glfwCreateWindow
-            glfwGetWindowSize(window, pWidth, pHeight);
-
-            // get the resolution of the primary monitor
-            GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-
-            // center the window
-            glfwSetWindowPos(window, (vidMode.width() - pWidth.get(0)) / 2, (vidMode.height() - pHeight.get(0)) / 2);
-        }
-
-        // make the OpenGl context current
-        glfwMakeContextCurrent(window);
-
-        // enable v-sync
-        glfwSwapInterval(1);
-
-        // make the window visible
-        glfwShowWindow(window);
     }
 
     public static void processErrors() throws Exception {
@@ -309,8 +237,11 @@ public class Main {
         // create a projection matrix, describes how and what the projection is. we have FOV, aspect ratio,
         // near and far plane. in this case it is a perspective projection.
         
-        Matrix4f projection = new Matrix4f()
-            .perspective((float)Math.toRadians(45.0f), (float)windowSize.x / windowSize.y, 0.1f, 100.0f);
+        Matrix4f projection = new Matrix4f().perspective(
+            (float)Math.toRadians(45.0f), 
+            (float)window.getSize().x() / window.getSize().y(), 
+            0.1f, 100.0f
+        );
 
         try {
             // create the vertex array object
@@ -425,7 +356,7 @@ public class Main {
         }
 
         // run the rendering loop until the user has attempted to close the window
-        while (!glfwWindowShouldClose(window)) {
+        while (!window.shouldClose()) {
             try {
                 float currentFrame = (float)glfwGetTime();
                 deltaTime = currentFrame - lastFrame;
@@ -446,8 +377,11 @@ public class Main {
                 ourShader.setMat4("view", view);
 
                 // use camera's zoom to dictate perspective fov.
-                projection = new Matrix4f()
-                    .perspective(camera.getFov(), (float)windowSize.x / windowSize.y, 0.1f, 100.0f);
+                projection = new Matrix4f().perspective(
+                    camera.getFov(), 
+                    (float)window.getSize().x() / window.getSize().y(), 
+                    0.1f, 100.0f
+                );
                 ourShader.setMat4("projection", projection);
 
                 // draw the cubes
@@ -469,10 +403,10 @@ public class Main {
                 processErrors();
 
                 // swap buffers
-                glfwSwapBuffers(window);
+                window.swapBuffers();
 
                 // poll input events.
-                glfwPollEvents();
+                Application.pollEvents();
             } catch (Exception e) {
                 e.printStackTrace();
                 break;
@@ -481,44 +415,30 @@ public class Main {
     }
 
     private static void processInput() {
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-            glfwSetWindowShouldClose(window, true);
+        if (glfwGetKey(window.getID(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+            window.setShouldClose(true);
         }
 
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        if (glfwGetKey(window.getID(), GLFW_KEY_W) == GLFW_PRESS) {
             camera.processKeyboard(MOVEMENT.FORWARD, deltaTime);
         }
 
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        if (glfwGetKey(window.getID(), GLFW_KEY_S) == GLFW_PRESS) {
             camera.processKeyboard(MOVEMENT.BACKWARD, deltaTime);
         }
 
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        if (glfwGetKey(window.getID(), GLFW_KEY_A) == GLFW_PRESS) {
             camera.processKeyboard(MOVEMENT.LEFT, deltaTime);
         }
 
-        if (glfwGetKey(window, GLFW_KEY_D)  == GLFW_PRESS) {
+        if (glfwGetKey(window.getID(), GLFW_KEY_D)  == GLFW_PRESS) {
             camera.processKeyboard(MOVEMENT.RIGHT, deltaTime);
         }
     }
 
-    private static void cleanup() {
-        // free the window callbacks to the system
-        glfwFreeCallbacks(window);
-        glfwDestroyWindow(window);
-
-        // terminate GLFW and free the error callback
-        glfwTerminate();
-        glfwSetErrorCallback(null).free();
-    }
-
-    private static void run() {
+    public static void main(String[] args) {
         init();
         loop();
-        cleanup();
-    }
-
-    public static void main(String[] args) {
-        run();
+        Application.terminate();
     }
 }
