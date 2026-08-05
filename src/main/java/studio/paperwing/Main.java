@@ -1,14 +1,23 @@
 package studio.paperwing;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
+import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
+import static org.lwjgl.glfw.GLFW.GLFW_CURSOR_DISABLED;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
+import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
+import static org.lwjgl.glfw.GLFW.GLFW_REPEAT;
 import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
 import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
 import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
+import static org.lwjgl.glfw.GLFW.glfwGetKey;
 import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
@@ -16,8 +25,11 @@ import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
+import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetInputMode;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetScrollCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowPos;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
@@ -87,6 +99,7 @@ import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
+import studio.paperwing.Camera.MOVEMENT;
 
 public class Main {
     // the window handle
@@ -152,6 +165,17 @@ public class Main {
         new Vector3f(-1.3f,  1.0f, -1.5f)  
     };
 
+    private static final Camera camera = new Camera(
+        new Vector3f(0.0f, 0.0f, -3.0f),
+        new Vector3f(0.0f, 1.0f, 0.0f), 
+        -90.0f, 0.0f
+    );
+    private static float deltaTime = 0.0f;
+    private static float lastFrame = 0.0f;
+    private static boolean firstMouse = true;
+    private static float lastX = 0.0f;
+    private static float lastY = 0.0f;
+
     private static void init() {
         System.out.printf("Starting LWJGL %s!\n", Version.getVersion());
 
@@ -174,11 +198,27 @@ public class Main {
             throw new RuntimeException("Failed to create the GLFW window.");
         }
 
-        // setup a key callback; called per frame, per key event.
-        glfwSetKeyCallback(window, (windowHandle, key, scancode, action, mods) -> {
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-                glfwSetWindowShouldClose(windowHandle, true); // we will detect this in the rendering loop
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        glfwSetCursorPosCallback(window, (windowHandle, xpos, ypos) -> {
+            if (firstMouse) { // initialize last x and y of the mouse.
+                lastX = (float)xpos;
+                lastY = (float)ypos;
+                firstMouse = false;
             }
+
+            // calculate offset
+            float xOffset = (float)xpos - lastX;
+            float yOffset = lastY - (float)ypos;
+            lastX = (float)xpos;
+            lastY = (float)ypos;
+
+            // pass offset to camera process.
+            camera.processMouseMovement(xOffset, yOffset, true);
+        });
+
+        glfwSetScrollCallback(window, (windowHandle, xOffset, yOffset) -> {
+            camera.processMouseScroll((float)yOffset);
         });
 
         // get the thread stack and push a new frame
@@ -387,6 +427,11 @@ public class Main {
         // run the rendering loop until the user has attempted to close the window
         while (!glfwWindowShouldClose(window)) {
             try {
+                float currentFrame = (float)glfwGetTime();
+                deltaTime = currentFrame - lastFrame;
+                lastFrame = currentFrame;
+                processInput();
+
                 // clear frame buffer
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -396,10 +441,19 @@ public class Main {
                 glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, texture2);
 
-                // draw the triangle
+                // use camera's view matrix to position it in space properly
+                view = camera.getViewMatrix();
+                ourShader.setMat4("view", view);
+
+                // use camera's zoom to dictate perspective fov.
+                projection = new Matrix4f()
+                    .perspective(camera.getFov(), (float)windowSize.x / windowSize.y, 0.1f, 100.0f);
+                ourShader.setMat4("projection", projection);
+
+                // draw the cubes
                 glBindVertexArray(VAO);
                 for (int i = 0; i < cubePositions.length; i++) {
-                    float angle = (float)Math.toRadians( (i+1) * 20.0f * glfwGetTime());
+                    float angle = (float)Math.toRadians(((i + 1) * 20.0) + (glfwGetTime() * 10.0));
                     // WARNING: -tion functions reset the matrix to identity before applying whatever it does.
                     //          therefore, you should always start with a -tion function, followed by a normal
                     //          verb.
@@ -410,7 +464,7 @@ public class Main {
                     ourShader.setMat4("model", model);
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                 }
-                
+
                 glBindVertexArray(0);
                 processErrors();
 
@@ -425,7 +479,28 @@ public class Main {
             }
         }
     }
-    
+
+    private static void processInput() {
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+            glfwSetWindowShouldClose(window, true);
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            camera.processKeyboard(MOVEMENT.FORWARD, deltaTime);
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            camera.processKeyboard(MOVEMENT.BACKWARD, deltaTime);
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            camera.processKeyboard(MOVEMENT.LEFT, deltaTime);
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_D)  == GLFW_PRESS) {
+            camera.processKeyboard(MOVEMENT.RIGHT, deltaTime);
+        }
+    }
 
     private static void cleanup() {
         // free the window callbacks to the system
