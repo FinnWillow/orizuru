@@ -90,11 +90,10 @@ public final class Application {
         }
     }
 
-
-    public static Window createWindow(String name, int width, int height) {
+    public static Window createWindow(WindowSettings settings) {
         checkOpen();
 
-        Window createdWindow = new Window(name, width, height);
+        Window createdWindow = new Window(settings);
         windowMap.put(createdWindow.getID(), createdWindow);
 
         return createdWindow;

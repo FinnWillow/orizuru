@@ -72,6 +72,7 @@ import org.lwjgl.system.MemoryStack;
 import studio.paperwing.Camera.MOVEMENT;
 import studio.paperwing.orizuru.core.Application;
 import studio.paperwing.orizuru.core.Window;
+import studio.paperwing.orizuru.core.WindowSettings;
 
 public class Main {
     // the window handle
@@ -148,7 +149,10 @@ public class Main {
 
     private static void init() {
         Application.init();
-        window = Application.createWindow("Hello Window!", 640, 480);
+        window = Application.createWindow(new WindowSettings()
+            .setName("This is the window's name")
+            .setSize(640, 480)
+        );
 
         glfwSetInputMode(window.getID(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
